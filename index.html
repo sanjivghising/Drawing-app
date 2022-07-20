@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+<div class="container">
+        <div class="board">
+            <canvas id="canvas">
+              your browser not supported dont try
+            </canvas>
+            <div class="color-container">
+                <div id="color-open" class="open">
+                    <i class="fa fa-angle-up"></i>
+                </div>
+                <div class="current-color">
+                    <p>Current Color</p>
+                    <button class="color" id="current"></button>
+                </div>
+                <div class="colors open">
+                    <button id="rgb(255,0,0)" class="color" style="background-color: rgb(255, 0, 0);"></button>
+                    <button id="rgb(0,255,0)" class="color" style="background-color: rgb(0, 255, 0);"></button>
+                    <button id="rgb(0,0,255)" class="color" style="background-color: rgb(0, 0, 255);"></button>
+                </div>
+                <button title="Add Color" id="add-color" class="add-color"><i class="fa fa-plus"></i></button>
+            </div>
+            <div id="colorSelect">
+                <span id="newColor"></span>
+                <div class="sliders">
+                    <p>
+                        <label for="red">Red</label>
+                        <input id="red-color" name="red" type="range" min=0 max=255 value=0>
+                        <span id="red-value"></span>
+                        
+                    </p>
+                    <p>
+                        <label for="green">Green</label>
+                        <input id="green-color" name="green" type="range" min=0 max=255 value=0>
+                        <span id="green-value"></span>
+                    </p>
+                    <p>
+                        <label for="blue">Blue</label>
+                        <input id="blue-color" name="blue" type="range" min=0 max=255 value=0>
+                        <span id="blue-value"></span>
+                    </p>
+                </div>
+                <div>
+                    <button id="addNewColor">Add Color</button>
+                </div>
+            </div>
+        </div>
+  <div class="brush-size">
+                <span id="brush-size-value"></span>
+                <input type="range" min="1" value="10" max="100" name="" id="brush-size">
+    <div id="brush-preview"></div>
+            </div>
+    </div>
+
+<script>
+    let isDrawing = false;
+let brush = 10;
+// change brush size
+window.addEventListener('load',function(){
+    let brushSize = document.getElementById("brush-size");
+    let brushSizeValue = document.getElementById("brush-size-value");
+    let brushSizePreview = document.getElementById("brush-preview");
+
+    brushSize.addEventListener("mousemove", function(){
+        brush = brushSize.value;
+        brushSizePreview.style.padding=brush/2+"px";
+        brushSizePreview.style.top= -20-brush+"px";
+        brushSizePreview.style.backgroundColor=color;
+        brushSizeValue.innerText=brush+"px"
+    });
+    brushSizeValue.innerText=brush+"px";
+});
+
+
+//current color
+const current = document.getElementById("current");
+function currentColor(color){
+    current.style.backgroundColor=color;
+}
+
+let defaulColor = "rgb(0,0,0)";
+currentColor(color=defaulColor);
+const board = document.querySelector('.board');
+const newColor = document.getElementById('newColor');
+const colorSelect = document.getElementById('colorSelect');
+
+const redSlider = document.getElementById('red-color');
+const redValue = document.getElementById('red-value');
+
+const greenSlider = document.getElementById('green-color');
+const greenValue = document.getElementById('green-value');
+
+const blueSlider = document.getElementById('blue-color');
+const blueValue = document.getElementById('blue-value');
+
+colorSelect.addEventListener('mousemove',()=>{
+    newColor.style.backgroundColor=`rgb(${redSlider.value},${greenSlider.value},${blueSlider.value})`;
+    redValue.innerText=redSlider.value;
+    greenValue.innerText=greenSlider.value;
+    blueValue.innerText=blueSlider.value;
+});
+
+
+//opening add color box
+
+const addColor = document.getElementById("add-color");
+
+addColor.addEventListener('click',()=>{
+    addColor.classList.toggle('open');
+    colorSelect.classList.toggle('open');
+})
+
+const addNewColor = document.getElementById('addNewColor');
+const colorContainer = document.getElementsByClassName('colors')[0];
+
+addNewColor.addEventListener('click',()=>this.addColorFun());
+function addColorFun(){
+    addColor.classList.toggle('open');
+    colorSelect.classList.toggle('open');
+    let colorBox = document.createElement('button');
+    colorBox.setAttribute("id","rgb("+redSlider.value+","+greenSlider.value+","+blueSlider.value+")");
+    colorBox.classList.add('color');
+    colorBox.style.backgroundColor="rgb("+redSlider.value+","+greenSlider.value+","+blueSlider.value+")";
+    colorContainer.appendChild(colorBox);
+    defaulColor="rgb("+redSlider.value+","+greenSlider.value+","+blueSlider.value+")";
+}
+//change color
+let testing = setInterval(() => {
+    const colorBox = document.querySelectorAll('.color');
+
+    colorBox.forEach((item,index)=>{
+        colorBox[index].addEventListener('click',()=>{
+            defaulColor=colorBox[index].id;
+        });
+        currentColor(color=defaulColor);
+    });
+
+}, 100);
+//canvas drawing 
+window.addEventListener('load',()=>{
+    const canvas = document.getElementById('canvas');
+    canvas.height=window.innerHeight;
+    canvas.width=window.innerWidth;
+    
+});
+const ctx = canvas.getContext('2d');
+
+canvas.addEventListener('mousedown',(e,color)=>this.mouseDown(e,color));
+canvas.addEventListener('mousemove',(e,color)=>this.mouseMove(e,color));
+canvas.addEventListener('mouseup',()=>this.mouseUp());
+
+function mouseDown(e,color=defaulColor){
+    isDrawing=true;
+    startDrawing(e,color);
+}
+function mouseMove(e,color){
+    isDrawing?startDrawing(e,color=defaulColor):stopDrawing();
+}
+function mouseUp(){
+    isDrawing=false;
+    ctx.beginPath();
+}
+function startDrawing(e,color){
+    ctx.lineWidth=brush;
+    ctx.lineCap='round';
+
+
+    ctx.lineTo(e.clientX,e.clientY);
+    ctx.stroke();
+    // ctx.beginPath();
+    ctx.moveTo(e.clientX,e.clientY);
+    ctx.fillStyle=color;
+    ctx.strokeStyle=color;
+}
+function stopDrawing(){
+
+}
+
+//color open
+const colorOpen = document.getElementById("color-open");
+
+colorOpen.addEventListener('click',()=>{
+    colorOpen.classList.toggle('open');
+    colorContainer.classList.toggle('open');
+});
+
+</script></body>
+</html>
